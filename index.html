@@ -250,8 +250,8 @@
       </button>
 
       <div class="webhook-container">
-        <label for="webhookUrl" class="form-label">URL do Webhook:</label>
-        <input type="text" class="form-control" id="webhookUrl" placeholder="https://seu-servidor.com/webhook">
+        <label for="webhookUrl" class="form-label">URL do Webhook (base):</label>
+        <input type="text" class="form-control" id="webhookUrl" placeholder="https://webhook.oficinahub.xyz/tts">
       </div>
 
       <div class="status-indicator info" id="statusIndicator">
@@ -290,7 +290,7 @@
       if (microphoneBtn) {
         microphoneBtn.disabled = false;
         microphoneBtn.classList.add('enabled');
-        updateStatus('Pronto para gravar. Insira o webhook.', 'info');
+        updateStatus('Pronto para gravar. Insira a URL base do webhook.', 'info');
       }
 
       async function startRecording() {
@@ -365,30 +365,62 @@
         updateStatus('Tocando resposta...', 'info');
         if (speakingAnimation) speakingAnimation.style.display = 'flex';
 
-        const url = URL.createObjectURL(blob); // [web:281]
+        const url = URL.createObjectURL(blob);
         responseAudio.src = url;
 
         responseAudio.play().catch((e) => {
           console.error('Falha ao dar play:', e);
-          URL.revokeObjectURL(url); // libera memória [web:292]
+          URL.revokeObjectURL(url);
           updateStatus('Erro ao tocar áudio.', 'error');
           if (speakingAnimation) speakingAnimation.style.display = 'none';
         });
 
         responseAudio.onended = () => {
-          URL.revokeObjectURL(url); // [web:292]
+          URL.revokeObjectURL(url);
           updateStatus('Pronto para gravar.', 'info');
           if (speakingAnimation) speakingAnimation.style.display = 'none';
         };
 
         responseAudio.onerror = () => {
-          URL.revokeObjectURL(url); // [web:292]
+          URL.revokeObjectURL(url);
           updateStatus('Erro ao tocar áudio de resposta.', 'error');
           if (speakingAnimation) speakingAnimation.style.display = 'none';
         };
       }
 
-      async function sendAudioToWebhook(audioBlob, webhookUrl) {
+      // Polling simples: tenta GET várias vezes até o mp3 estar pronto
+      async function fetchMp3WhenReady(getUrl, controller, maxWaitMs = 120000) {
+        const start = Date.now();
+        let attempt = 0;
+
+        while (Date.now() - start < maxWaitMs) {
+          attempt++;
+
+          const res = await fetch(getUrl, {
+            method: 'GET',
+            cache: 'no-store',
+            signal: controller.signal
+          });
+
+          if (res.ok) {
+            return await res.blob();
+          }
+
+          // Se seu workflow GET responder 404/409 enquanto ainda não existe, a gente só espera e tenta de novo
+          if (res.status !== 404 && res.status !== 409) {
+            const txt = await res.text().catch(() => '');
+            throw new Error(`GET /tts falhou: ${res.status} ${res.statusText} ${txt}`);
+          }
+
+          // backoff leve: 400ms → 600ms → 800ms ... até ~2s
+          const wait = Math.min(400 + attempt * 200, 2000);
+          await new Promise(r => setTimeout(r, wait));
+        }
+
+        throw new Error('Timeout esperando o MP3 ficar pronto.');
+      }
+
+      async function sendAudioToWebhook(audioBlob, webhookUrlBase) {
         let base64Audio;
 
         try {
@@ -406,35 +438,46 @@
         const controller = new AbortController();
         const timeoutId = setTimeout(() => {
           controller.abort();
-          console.error('Timeout: Webhook demorou muito para responder.');
-          updateStatus('Erro: Webhook demorou muito para responder.', 'error');
-        }, 120000); // 120s [web:262]
+          console.error('Timeout: Processo demorou muito.');
+          updateStatus('Erro: Processo demorou muito para responder.', 'error');
+        }, 120000);
 
         try {
-          updateStatus('Enviando para o webhook...', 'info');
+          updateStatus('Enviando para o webhook (POST)...', 'info');
 
-          const response = await fetch(webhookUrl, {
+          // 1) POST: inicia processamento e salva mp3, deve retornar JSON { id }
+          const postRes = await fetch(webhookUrlBase, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(payload),
             signal: controller.signal
           });
 
-          clearTimeout(timeoutId);
-
-          if (!response.ok) {
-            const txt = await response.text().catch(() => '');
-            throw new Error(`Erro no webhook: ${response.status} ${response.statusText} ${txt}`);
+          if (!postRes.ok) {
+            const txt = await postRes.text().catch(() => '');
+            throw new Error(`POST falhou: ${postRes.status} ${postRes.statusText} ${txt}`);
           }
 
-          // Agora o n8n retorna o MP3 como binário
-          const audioRespostaBlob = await response.blob();
+          const data = await postRes.json().catch(() => null);
+          const id = data && data.id;
+
+          if (!id) {
+            throw new Error('POST não retornou JSON com { "id": "..." }.');
+          }
+
+          updateStatus('Gerado. Buscando áudio (GET)...', 'info');
+
+          // 2) GET: busca o mp3 pronto
+          const getUrl = `${webhookUrlBase}?id=${encodeURIComponent(id)}`;
+          const audioRespostaBlob = await fetchMp3WhenReady(getUrl, controller, 120000);
+
+          clearTimeout(timeoutId);
           playResponseAudio(audioRespostaBlob);
 
         } catch (err) {
           clearTimeout(timeoutId);
           if (err.name === 'AbortError') return;
-          console.error('Erro ao enviar áudio:', err);
+          console.error('Erro ao enviar/baixar áudio:', err);
           updateStatus('Erro ao contatar o webhook.', 'error');
         }
       }
