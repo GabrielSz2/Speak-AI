@@ -293,6 +293,10 @@
         updateStatus('Pronto para gravar. Insira a URL base do webhook.', 'info');
       }
 
+      function sleep(ms) {
+        return new Promise(resolve => setTimeout(resolve, ms));
+      }
+
       async function startRecording() {
         const webhookUrl = webhookUrlInput.value.trim();
 
@@ -388,13 +392,13 @@
         };
       }
 
-      // Polling simples: tenta GET várias vezes até o mp3 estar pronto
-      async function fetchMp3WhenReady(getUrl, controller, maxWaitMs = 120000) {
-        const start = Date.now();
-        let attempt = 0;
+      // GET com tentativas limitadas (a cada 2s, 15x)
+      async function fetchMp3WithRetries(getUrl, controller, tries = 15, delayMs = 2000) {
+        let lastStatus = null;
+        let lastText = '';
 
-        while (Date.now() - start < maxWaitMs) {
-          attempt++;
+        for (let attempt = 1; attempt <= tries; attempt++) {
+          updateStatus(`Buscando áudio (GET)... tentativa ${attempt}/${tries}`, 'info');
 
           const res = await fetch(getUrl, {
             method: 'GET',
@@ -406,18 +410,19 @@
             return await res.blob();
           }
 
-          // Se seu workflow GET responder 404/409 enquanto ainda não existe, a gente só espera e tenta de novo
+          lastStatus = res.status;
+          // tenta ler texto só pra debug (às vezes vem HTML/JSON)
+          lastText = await res.text().catch(() => '');
+
+          // se não for "ainda não pronto", aborta cedo
           if (res.status !== 404 && res.status !== 409) {
-            const txt = await res.text().catch(() => '');
-            throw new Error(`GET /tts falhou: ${res.status} ${res.statusText} ${txt}`);
+            throw new Error(`GET falhou: ${res.status} ${res.statusText} ${lastText}`);
           }
 
-          // backoff leve: 400ms → 600ms → 800ms ... até ~2s
-          const wait = Math.min(400 + attempt * 200, 2000);
-          await new Promise(r => setTimeout(r, wait));
+          await sleep(delayMs);
         }
 
-        throw new Error('Timeout esperando o MP3 ficar pronto.');
+        throw new Error(`Não consegui obter o MP3 após ${tries} tentativas. Último status: ${lastStatus}. ${lastText}`);
       }
 
       async function sendAudioToWebhook(audioBlob, webhookUrlBase) {
@@ -434,7 +439,6 @@
 
         const payload = { base64: base64Audio };
 
-        // timeout maior: STT + IA + TTS pode demorar
         const controller = new AbortController();
         const timeoutId = setTimeout(() => {
           controller.abort();
@@ -445,7 +449,7 @@
         try {
           updateStatus('Enviando para o webhook (POST)...', 'info');
 
-          // 1) POST: inicia processamento e salva mp3, deve retornar JSON { id }
+          // POST deve retornar JSON com { id } rapidamente (você respondeu no início do workflow)
           const postRes = await fetch(webhookUrlBase, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -465,18 +469,20 @@
             throw new Error('POST não retornou JSON com { "id": "..." }.');
           }
 
-          updateStatus('Gerado. Buscando áudio (GET)...', 'info');
+          // Espera fixa de 5s antes de começar os GETs
+          updateStatus('ID recebido. Aguardando 5s...', 'info');
+          await sleep(5000);
 
-          // 2) GET: busca o mp3 pronto
+          // GETs limitados: 15 tentativas, 2s cada
           const getUrl = `${webhookUrlBase}?id=${encodeURIComponent(id)}`;
-          const audioRespostaBlob = await fetchMp3WhenReady(getUrl, controller, 120000);
+          const audioRespostaBlob = await fetchMp3WithRetries(getUrl, controller, 15, 2000);
 
           clearTimeout(timeoutId);
           playResponseAudio(audioRespostaBlob);
 
         } catch (err) {
           clearTimeout(timeoutId);
-          if (err.name === 'AbortError') return;
+          if (err && err.name === 'AbortError') return;
           console.error('Erro ao enviar/baixar áudio:', err);
           updateStatus('Erro ao contatar o webhook.', 'error');
         }
