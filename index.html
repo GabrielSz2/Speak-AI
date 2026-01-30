@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Gravador de Áudio para Webhook</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Assistente Virtual por Áudio</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 
   <style>
@@ -65,7 +65,9 @@
       min-height: 100vh;
     }
 
-    *, *::before, *::after { box-sizing: inherit; }
+    *, *::before, *::after {
+      box-sizing: inherit;
+    }
 
     .chat-interface {
       width: 100%;
@@ -172,7 +174,10 @@
       fill: none;
     }
 
-    .webhook-container { width: 100%; text-align: left; }
+    .webhook-container {
+      width: 100%;
+      text-align: left;
+    }
 
     .form-label {
       display: block;
@@ -190,7 +195,8 @@
       background-color: var(--color-surface);
       border: 1px solid var(--color-border);
       border-radius: var(--radius-base);
-      transition: border-color var(--duration-normal) var(--ease-standard), box-shadow var(--duration-normal) var(--ease-standard);
+      transition: border-color var(--duration-normal) var(--ease-standard),
+                  box-shadow var(--duration-normal) var(--ease-standard);
     }
 
     .form-control:focus {
@@ -208,8 +214,15 @@
       width: 100%;
     }
 
-    .status-indicator.info { background-color: var(--color-info-bg); color: var(--color-primary); }
-    .status-indicator.error { background-color: var(--color-error-bg); color: var(--color-error); }
+    .status-indicator.info {
+      background-color: var(--color-info-bg);
+      color: var(--color-primary);
+    }
+
+    .status-indicator.error {
+      background-color: var(--color-error-bg);
+      color: var(--color-error);
+    }
   </style>
 </head>
 
@@ -282,10 +295,12 @@
 
       async function startRecording() {
         const webhookUrl = webhookUrlInput.value.trim();
+
         if (!webhookUrl) {
           updateStatus('Erro: Por favor, insira a URL do webhook.', 'error');
           return;
         }
+
         if (isRecording) return;
 
         try {
@@ -309,10 +324,9 @@
             }
 
             const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+
             sendAudioToWebhook(audioBlob, webhookUrl)
-              .finally(() => {
-                stream.getTracks().forEach(track => track.stop());
-              });
+              .finally(() => stream.getTracks().forEach(track => track.stop()));
           };
 
           mediaRecorder.start();
@@ -347,31 +361,28 @@
         });
       }
 
-      async function playResponseAudioFromBlob(blob) {
+      function playResponseAudio(blob) {
         updateStatus('Tocando resposta...', 'info');
         if (speakingAnimation) speakingAnimation.style.display = 'flex';
 
-        const url = URL.createObjectURL(blob); // padrão para tocar Blob [web:251][web:260]
+        const url = URL.createObjectURL(blob); // [web:281]
         responseAudio.src = url;
 
-        try {
-          await responseAudio.play();
-        } catch (e) {
-          console.error('Falha ao dar play (autoplay policy?):', e);
-          URL.revokeObjectURL(url);
-          updateStatus('Erro ao tocar áudio (clique na tela e tente novamente).', 'error');
+        responseAudio.play().catch((e) => {
+          console.error('Falha ao dar play:', e);
+          URL.revokeObjectURL(url); // libera memória [web:292]
+          updateStatus('Erro ao tocar áudio.', 'error');
           if (speakingAnimation) speakingAnimation.style.display = 'none';
-          return;
-        }
+        });
 
         responseAudio.onended = () => {
-          URL.revokeObjectURL(url);
+          URL.revokeObjectURL(url); // [web:292]
           updateStatus('Pronto para gravar.', 'info');
           if (speakingAnimation) speakingAnimation.style.display = 'none';
         };
 
         responseAudio.onerror = () => {
-          URL.revokeObjectURL(url);
+          URL.revokeObjectURL(url); // [web:292]
           updateStatus('Erro ao tocar áudio de resposta.', 'error');
           if (speakingAnimation) speakingAnimation.style.display = 'none';
         };
@@ -391,12 +402,13 @@
 
         const payload = { base64: base64Audio };
 
+        // timeout maior: STT + IA + TTS pode demorar
         const controller = new AbortController();
         const timeoutId = setTimeout(() => {
           controller.abort();
           console.error('Timeout: Webhook demorou muito para responder.');
           updateStatus('Erro: Webhook demorou muito para responder.', 'error');
-        }, 90000); // 90s (TTS + STT pode demorar) [web:256]
+        }, 120000); // 120s [web:262]
 
         try {
           updateStatus('Enviando para o webhook...', 'info');
@@ -415,15 +427,13 @@
             throw new Error(`Erro no webhook: ${response.status} ${response.statusText} ${txt}`);
           }
 
-          // AGORA: esperamos áudio binário do n8n
-          const audioResponseBlob = await response.blob(); // padrão fetch -> blob [web:186]
-          await playResponseAudioFromBlob(audioResponseBlob);
+          // Agora o n8n retorna o MP3 como binário
+          const audioRespostaBlob = await response.blob();
+          playResponseAudio(audioRespostaBlob);
 
         } catch (err) {
           clearTimeout(timeoutId);
-
           if (err.name === 'AbortError') return;
-
           console.error('Erro ao enviar áudio:', err);
           updateStatus('Erro ao contatar o webhook.', 'error');
         }
