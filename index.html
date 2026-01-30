@@ -1,506 +1,442 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gravador de Áudio para Webhook</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-    
-    <style>
-        /* Estilos CSS (Tema Escuro) */
-        :root {
-            --color-background: #18181b; /* Fundo escuro */
-            --color-surface: #27272a; /* Card escuro */
-            --color-text: #e4e4e7; /* Texto claro */
-            --color-text-secondary: #a1a1aa; /* Texto secundário claro */
-            --color-border: rgba(255, 255, 255, 0.15);
-            --color-card-border: rgba(255, 255, 255, 0.2);
-            --color-primary: #2dd4bf; /* Teal brilhante */
-            --color-primary-hover: #14b8a6; /* Teal mais escuro */
-            --color-disabled: #3f3f46;
-            --color-enabled: #4CAF50;
-            --color-recording: #F44336;
-            --color-speaking: #2196F3;
-            --color-error: #f43f5e;
-            --color-error-bg: rgba(244, 63, 94, 0.15);
-            --color-info-bg: rgba(45, 212, 191, 0.1); /* bg do status */
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gravador de Áudio para Webhook</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
 
-            --font-family-base: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            --font-size-base: 14px;
-            --font-size-sm: 12px;
-            --font-size-lg: 16px;
-            --font-size-xl: 18px;
-            --font-weight-medium: 500;
-            --font-weight-semibold: 600;
-            
-            --space-8: 8px;
-            --space-12: 12px;
-            --space-16: 16px;
-            --space-24: 24px;
-            --space-32: 32px;
+  <style>
+    :root {
+      --color-background: #18181b;
+      --color-surface: #27272a;
+      --color-text: #e4e4e7;
+      --color-text-secondary: #a1a1aa;
+      --color-border: rgba(255, 255, 255, 0.15);
+      --color-card-border: rgba(255, 255, 255, 0.2);
+      --color-primary: #2dd4bf;
+      --color-primary-hover: #14b8a6;
+      --color-disabled: #3f3f46;
+      --color-enabled: #4CAF50;
+      --color-recording: #F44336;
+      --color-speaking: #2196F3;
+      --color-error: #f43f5e;
+      --color-error-bg: rgba(244, 63, 94, 0.15);
+      --color-info-bg: rgba(45, 212, 191, 0.1);
 
-            --radius-base: 8px;
-            --radius-lg: 12px;
-            --radius-full: 9999px;
+      --font-family-base: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --font-size-base: 14px;
+      --font-size-sm: 12px;
+      --font-size-lg: 16px;
+      --font-size-xl: 18px;
+      --font-weight-medium: 500;
+      --font-weight-semibold: 600;
 
-            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
-            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.04), 0 4px 6px -2px rgba(0, 0, 0, 0.02);
-            --duration-normal: 250ms;
-            --ease-standard: cubic-bezier(0.16, 1, 0.3, 1);
-        }
+      --space-8: 8px;
+      --space-12: 12px;
+      --space-16: 16px;
+      --space-24: 24px;
+      --space-32: 32px;
 
-        html {
-            font-family: var(--font-family-base);
-            color: var(--color-text);
-            background-color: var(--color-background);
-            -webkit-font-smoothing: antialiased;
-            box-sizing: border-box;
-        }
+      --radius-base: 8px;
+      --radius-lg: 12px;
+      --radius-full: 9999px;
 
-        body {
-            margin: 0;
-            padding: var(--space-16);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-        }
+      --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
+      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.04), 0 4px 6px -2px rgba(0, 0, 0, 0.02);
+      --duration-normal: 250ms;
+      --ease-standard: cubic-bezier(0.16, 1, 0.3, 1);
+    }
 
-        *, *::before, *::after {
-            box-sizing: inherit;
-        }
+    html {
+      font-family: var(--font-family-base);
+      color: var(--color-text);
+      background-color: var(--color-background);
+      -webkit-font-smoothing: antialiased;
+      box-sizing: border-box;
+    }
 
-        .chat-interface {
-            width: 100%;
-            max-width: 500px;
-            background: var(--color-surface);
-            border-radius: var(--radius-lg);
-            border: 1px solid var(--color-card-border);
-            box-shadow: var(--shadow-lg);
-            overflow: hidden;
-        }
+    body {
+      margin: 0;
+      padding: var(--space-16);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
 
-        .header {
-            padding: var(--space-24);
-            text-align: center;
-            border-bottom: 1px solid var(--color-card-border);
-        }
+    *, *::before, *::after { box-sizing: inherit; }
 
-        .header h1 {
-            font-size: var(--font-size-xl);
-            font-weight: var(--font-weight-semibold);
-            margin: 0;
-        }
-        
-        .main-content {
-            padding: var(--space-32);
-            text-align: center;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: var(--space-24);
-        }
+    .chat-interface {
+      width: 100%;
+      max-width: 500px;
+      background: var(--color-surface);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--color-card-border);
+      box-shadow: var(--shadow-lg);
+      overflow: hidden;
+    }
 
-        /* Animação de "Falando" (para resposta) */
-        .speaking-animation {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 4px; /* Hardcoded */
-            height: 60px;
-        }
+    .header {
+      padding: var(--space-24);
+      text-align: center;
+      border-bottom: 1px solid var(--color-card-border);
+    }
 
-        .wave {
-            width: 4px;
-            background: var(--color-speaking);
-            border-radius: var(--radius-full);
-            animation: waveAnimation 1.5s ease-in-out infinite;
-        }
+    .header h1 {
+      font-size: var(--font-size-xl);
+      font-weight: var(--font-weight-semibold);
+      margin: 0;
+    }
 
-        .wave:nth-child(1) { animation-delay: 0s; height: 20px; }
-        .wave:nth-child(2) { animation-delay: 0.2s; height: 30px; }
-        .wave:nth-child(3) { animation-delay: 0.4s; height: 40px; }
-        .wave:nth-child(4) { animation-delay: 0.6s; height: 25px; }
+    .main-content {
+      padding: var(--space-32);
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: var(--space-24);
+    }
 
-        @keyframes waveAnimation {
-            0%, 40%, 100% { transform: scaleY(0.4); }
-            20% { transform: scaleY(1); }
-        }
+    .speaking-animation {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 4px;
+      height: 60px;
+    }
 
-        /* Botão do Microfone */
-        .microphone-btn {
-            width: 80px;
-            height: 80px;
-            border-radius: 50%;
-            border: none;
-            cursor: pointer;
-            transition: all var(--duration-normal) var(--ease-standard);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-        }
+    .wave {
+      width: 4px;
+      background: var(--color-speaking);
+      border-radius: var(--radius-full);
+      animation: waveAnimation 1.5s ease-in-out infinite;
+    }
 
-        .microphone-btn:disabled {
-            background-color: var(--color-disabled);
-            cursor: not-allowed;
-        }
+    .wave:nth-child(1) { animation-delay: 0s; height: 20px; }
+    .wave:nth-child(2) { animation-delay: 0.2s; height: 30px; }
+    .wave:nth-child(3) { animation-delay: 0.4s; height: 40px; }
+    .wave:nth-child(4) { animation-delay: 0.6s; height: 25px; }
 
-        .microphone-btn.enabled {
-            background-color: var(--color-enabled);
-            box-shadow: var(--shadow-sm);
-        }
+    @keyframes waveAnimation {
+      0%, 40%, 100% { transform: scaleY(0.4); }
+      20% { transform: scaleY(1); }
+    }
 
-        .microphone-btn.enabled:hover {
-            transform: scale(1.05);
-            box-shadow: var(--shadow-lg);
-        }
+    .microphone-btn {
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      border: none;
+      cursor: pointer;
+      transition: all var(--duration-normal) var(--ease-standard);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
 
-        .microphone-btn.recording {
-            background-color: var(--color-recording);
-            animation: pulseRecording 1.5s ease-in-out infinite;
-        }
+    .microphone-btn:disabled {
+      background-color: var(--color-disabled);
+      cursor: not-allowed;
+    }
 
-        @keyframes pulseRecording {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.1); }
-        }
+    .microphone-btn.enabled {
+      background-color: var(--color-enabled);
+      box-shadow: var(--shadow-sm);
+    }
 
-        .mic-icon {
-            width: 32px;
-            height: 32px;
-            color: white;
-            stroke: currentColor;
-            stroke-width: 2;
-            stroke-linecap: round;
-            stroke-linejoin: round;
-            fill: none;
-        }
+    .microphone-btn.enabled:hover {
+      transform: scale(1.05);
+      box-shadow: var(--shadow-lg);
+    }
 
-        /* Campo de Webhook */
-        .webhook-container {
-            width: 100%;
-            text-align: left;
-        }
-        
-        .form-label {
-            display: block;
-            margin-bottom: var(--space-8);
-            font-weight: var(--font-weight-medium);
-            font-size: var(--font-size-sm);
-        }
+    .microphone-btn.recording {
+      background-color: var(--color-recording);
+      animation: pulseRecording 1.5s ease-in-out infinite;
+    }
 
-        .form-control {
-            display: block;
-            width: 100%;
-            padding: var(--space-8) var(--space-12);
-            font-size: var(--font-size-base);
-            color: var(--color-text);
-            background-color: var(--color-surface);
-            border: 1px solid var(--color-border);
-            border-radius: var(--radius-base);
-            transition: border-color var(--duration-normal) var(--ease-standard), box-shadow var(--duration-normal) var(--ease-standard);
-        }
+    @keyframes pulseRecording {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+    }
 
-        .form-control:focus {
-            border-color: var(--color-primary);
-            outline: 0;
-            box-shadow: 0 0 0 3px rgba(45, 212, 191, 0.3); /* Cor do foco atualizada */
-        }
+    .mic-icon {
+      width: 32px;
+      height: 32px;
+      color: white;
+      stroke: currentColor;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      fill: none;
+    }
 
-        /* Indicador de Status */
-        .status-indicator {
-            padding: var(--space-12);
-            border-radius: var(--radius-base);
-            font-weight: var(--font-weight-medium);
-            font-size: var(--font-size-sm);
-            text-align: center;
-            width: 100%;
-        }
+    .webhook-container { width: 100%; text-align: left; }
 
-        .status-indicator.info {
-            background-color: var(--color-info-bg);
-            color: var(--color-primary);
-        }
+    .form-label {
+      display: block;
+      margin-bottom: var(--space-8);
+      font-weight: var(--font-weight-medium);
+      font-size: var(--font-size-sm);
+    }
 
-        .status-indicator.error {
-            background-color: var(--color-error-bg);
-            color: var(--color-error);
-        }
-    </style>
+    .form-control {
+      display: block;
+      width: 100%;
+      padding: var(--space-8) var(--space-12);
+      font-size: var(--font-size-base);
+      color: var(--color-text);
+      background-color: var(--color-surface);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-base);
+      transition: border-color var(--duration-normal) var(--ease-standard), box-shadow var(--duration-normal) var(--ease-standard);
+    }
+
+    .form-control:focus {
+      border-color: var(--color-primary);
+      outline: 0;
+      box-shadow: 0 0 0 3px rgba(45, 212, 191, 0.3);
+    }
+
+    .status-indicator {
+      padding: var(--space-12);
+      border-radius: var(--radius-base);
+      font-weight: var(--font-weight-medium);
+      font-size: var(--font-size-sm);
+      text-align: center;
+      width: 100%;
+    }
+
+    .status-indicator.info { background-color: var(--color-info-bg); color: var(--color-primary); }
+    .status-indicator.error { background-color: var(--color-error-bg); color: var(--color-error); }
+  </style>
 </head>
+
 <body>
-
-    <div class="chat-interface">
-        <div class="header">
-            <h1>Assistente Virtual por Áudio</h1>
-        </div>
-
-        <div class="main-content">
-            <!-- Animação de resposta -->
-            <div class="speaking-animation" id="speakingAnimation" style="display: none;">
-                <div class="wave"></div>
-                <div class="wave"></div>
-                <div class="wave"></div>
-                <div class="wave"></div>
-            </div>
-
-            <!-- Botão de Gravação -->
-            <button class="microphone-btn" id="microphoneBtn" disabled>
-                <svg class="mic-icon" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M12 2a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"></path>
-                    <path d="M19 10v1a7 7 0 0 1-14 0v-1"></path>
-                    <line x1="12" y1="19" x2="12" y2="23"></line>
-                    <line x1="8" y1="23" x2="16" y2="23"></line>
-                </svg>
-            </button>
-            
-            <!-- Campo do Webhook -->
-            <div class="webhook-container">
-                <label for="webhookUrl" class="form-label">URL do Webhook:</label>
-                <input type="text" class="form-control" id="webhookUrl" placeholder="https://seu-servidor.com/webhook">
-            </div>
-
-            <!-- Status -->
-            <div class="status-indicator info" id="statusIndicator">
-                <span id="statusText">Aguardando...</span>
-            </div>
-        </div>
+  <div class="chat-interface">
+    <div class="header">
+      <h1>Assistente Virtual por Áudio</h1>
     </div>
 
-    <script>
-        // --- INÍCIO DO JAVASCRIPT SEGURO ---
+    <div class="main-content">
+      <div class="speaking-animation" id="speakingAnimation" style="display:none;">
+        <div class="wave"></div>
+        <div class="wave"></div>
+        <div class="wave"></div>
+        <div class="wave"></div>
+      </div>
 
-        // O script só roda DEPOIS que a página carregou
-        document.addEventListener('DOMContentLoaded', () => {
+      <button class="microphone-btn" id="microphoneBtn" disabled>
+        <svg class="mic-icon" viewBox="0 0 24 24" fill="currentColor">
+          <path d="M12 2a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"></path>
+          <path d="M19 10v1a7 7 0 0 1-14 0v-1"></path>
+          <line x1="12" y1="19" x2="12" y2="23"></line>
+          <line x1="8" y1="23" x2="16" y2="23"></line>
+        </svg>
+      </button>
 
-            // 1. Verificação de Compatibilidade (A CAUSA MAIS PROVÁVEL DA TELA BRANCA)
-            // Verifica se as APIs essenciais existem
-            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || !window.MediaRecorder) {
-                const statusText = document.getElementById('statusText');
-                if (statusText) {
-                    statusText.textContent = 'Erro: Seu navegador não suporta gravação de áudio.';
-                    const indicator = document.getElementById('statusIndicator');
-                    if(indicator) indicator.className = 'status-indicator error';
-                }
-                // Trava o script aqui; não tenta carregar o resto
-                return; 
-            }
+      <div class="webhook-container">
+        <label for="webhookUrl" class="form-label">URL do Webhook:</label>
+        <input type="text" class="form-control" id="webhookUrl" placeholder="https://seu-servidor.com/webhook">
+      </div>
 
-            // 2. Se passou na verificação, pega os elementos
-            const microphoneBtn = document.getElementById('microphoneBtn');
-            const webhookUrlInput = document.getElementById('webhookUrl');
-            const statusText = document.getElementById('statusText');
-            const statusIndicator = document.getElementById('statusIndicator');
-            const speakingAnimation = document.getElementById('speakingAnimation');
+      <div class="status-indicator info" id="statusIndicator">
+        <span id="statusText">Aguardando...</span>
+      </div>
+    </div>
+  </div>
 
-            // 3. Variáveis de Estado
-            let isRecording = false;
-            let mediaRecorder = null;
-            let audioChunks = [];
-            let responseAudio = new Audio(); // Áudio para tocar a resposta
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
 
-            // Função para atualizar status
-            function updateStatus(message, type = 'info') {
-                if (statusText) {
-                    statusText.textContent = message;
-                }
-                if (statusIndicator) {
-                    statusIndicator.className = `status-indicator ${type}`;
-                }
-            }
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia || !window.MediaRecorder) {
+        const statusText = document.getElementById('statusText');
+        const indicator = document.getElementById('statusIndicator');
+        if (statusText) statusText.textContent = 'Erro: Seu navegador não suporta gravação de áudio.';
+        if (indicator) indicator.className = 'status-indicator error';
+        return;
+      }
 
-            // 4. Habilita o botão (agora sabemos que as APIs existem)
+      const microphoneBtn = document.getElementById('microphoneBtn');
+      const webhookUrlInput = document.getElementById('webhookUrl');
+      const statusText = document.getElementById('statusText');
+      const statusIndicator = document.getElementById('statusIndicator');
+      const speakingAnimation = document.getElementById('speakingAnimation');
+
+      let isRecording = false;
+      let mediaRecorder = null;
+      let audioChunks = [];
+      let responseAudio = new Audio();
+
+      function updateStatus(message, type = 'info') {
+        if (statusText) statusText.textContent = message;
+        if (statusIndicator) statusIndicator.className = `status-indicator ${type}`;
+      }
+
+      if (microphoneBtn) {
+        microphoneBtn.disabled = false;
+        microphoneBtn.classList.add('enabled');
+        updateStatus('Pronto para gravar. Insira o webhook.', 'info');
+      }
+
+      async function startRecording() {
+        const webhookUrl = webhookUrlInput.value.trim();
+        if (!webhookUrl) {
+          updateStatus('Erro: Por favor, insira a URL do webhook.', 'error');
+          return;
+        }
+        if (isRecording) return;
+
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+          isRecording = true;
+          audioChunks = [];
+
+          mediaRecorder = new MediaRecorder(stream);
+
+          mediaRecorder.ondataavailable = (event) => {
+            audioChunks.push(event.data);
+          };
+
+          mediaRecorder.onstop = () => {
+            isRecording = false;
+            updateStatus('Processando áudio...', 'info');
+
             if (microphoneBtn) {
-                microphoneBtn.disabled = false;
-                microphoneBtn.classList.add('enabled');
-                updateStatus('Pronto para gravar. Insira o webhook.', 'info');
+              microphoneBtn.classList.remove('recording');
+              microphoneBtn.classList.add('enabled');
             }
 
-            // 5. Lógica de Gravação
-            async function startRecording() {
-                const webhookUrl = webhookUrlInput.value;
-                if (!webhookUrl) {
-                    updateStatus('Erro: Por favor, insira a URL do webhook.', 'error');
-                    return;
-                }
+            const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+            sendAudioToWebhook(audioBlob, webhookUrl)
+              .finally(() => {
+                stream.getTracks().forEach(track => track.stop());
+              });
+          };
 
-                if (isRecording) return; // Já está gravando
+          mediaRecorder.start();
+          updateStatus('Gravando... Clique para parar.', 'info');
 
-                try {
-                    // Pedir permissão ao microfone
-                    const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                    isRecording = true;
-                    audioChunks = []; // Limpa chunks anteriores
+          if (microphoneBtn) {
+            microphoneBtn.classList.remove('enabled');
+            microphoneBtn.classList.add('recording');
+          }
 
-                    // Inicia o Gravador
-                    mediaRecorder = new MediaRecorder(stream);
+        } catch (err) {
+          console.error('Erro ao acessar microfone:', err);
+          updateStatus('Erro: Permissão ao microfone negada.', 'error');
+          isRecording = false;
+        }
+      }
 
-                    // O que fazer quando o gravador parar
-                    mediaRecorder.onstop = () => {
-                        console.log('Gravação parada.');
-                        isRecording = false;
-                        updateStatus('Processando áudio...', 'info');
-                        if (microphoneBtn) {
-                            microphoneBtn.classList.remove('recording');
-                            microphoneBtn.classList.add('enabled');
-                        }
+      function stopRecording() {
+        if (!isRecording || !mediaRecorder) return;
+        mediaRecorder.stop();
+      }
 
-                        // Cria o arquivo de áudio
-                        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-                        sendAudioToWebhook(audioBlob, webhookUrl);
-                        
-                        // Para as faixas do microfone (boa prática)
-                        stream.getTracks().forEach(track => track.stop());
-                    };
+      function blobToBase64(blob) {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            const base64Data = reader.result.split(',')[1];
+            resolve(base64Data);
+          };
+          reader.onerror = reject;
+          reader.readAsDataURL(blob);
+        });
+      }
 
-                    // O que fazer quando dados de áudio estiverem disponíveis
-                    mediaRecorder.ondataavailable = (event) => {
-                        audioChunks.push(event.data);
-                    };
+      async function playResponseAudioFromBlob(blob) {
+        updateStatus('Tocando resposta...', 'info');
+        if (speakingAnimation) speakingAnimation.style.display = 'flex';
 
-                    // Começa a gravar
-                    mediaRecorder.start();
-                    updateStatus('Gravando... Clique para parar.', 'info');
-                    if (microphoneBtn) {
-                        microphoneBtn.classList.remove('enabled');
-                        microphoneBtn.classList.add('recording');
-                    }
+        const url = URL.createObjectURL(blob); // padrão para tocar Blob [web:251][web:260]
+        responseAudio.src = url;
 
-                } catch (err) {
-                    console.error('Erro ao acessar microfone:', err);
-                    updateStatus('Erro: Permissão ao microfone negada.', 'error');
-                    isRecording = false;
-                }
-            }
+        try {
+          await responseAudio.play();
+        } catch (e) {
+          console.error('Falha ao dar play (autoplay policy?):', e);
+          URL.revokeObjectURL(url);
+          updateStatus('Erro ao tocar áudio (clique na tela e tente novamente).', 'error');
+          if (speakingAnimation) speakingAnimation.style.display = 'none';
+          return;
+        }
 
-            function stopRecording() {
-                if (!isRecording || !mediaRecorder) return;
-                
-                mediaRecorder.stop(); // Isso vai disparar o 'onstop'
-            }
+        responseAudio.onended = () => {
+          URL.revokeObjectURL(url);
+          updateStatus('Pronto para gravar.', 'info');
+          if (speakingAnimation) speakingAnimation.style.display = 'none';
+        };
 
-            // --- NOVO HELPER: Converte Blob para Base64 ---
-            function blobToBase64(blob) {
-                return new Promise((resolve, reject) => {
-                    const reader = new FileReader();
-                    reader.onloadend = () => {
-                        // reader.result contém a data URL (ex: "data:audio/webm;base64,ABC...")
-                        // Nós separamos na vírgula para pegar apenas os dados base64
-                        const base64Data = reader.result.split(',')[1];
-                        resolve(base64Data);
-                    };
-                    reader.onerror = (error) => {
-                        reject(error);
-                    };
-                    reader.readAsDataURL(blob);
-                });
-            }
-            // --- FIM DO NOVO HELPER ---
+        responseAudio.onerror = () => {
+          URL.revokeObjectURL(url);
+          updateStatus('Erro ao tocar áudio de resposta.', 'error');
+          if (speakingAnimation) speakingAnimation.style.display = 'none';
+        };
+      }
 
-            async function sendAudioToWebhook(audioBlob, webhookUrl) {
-                
-                let base64Audio;
-                try {
-                    updateStatus('Convertendo áudio...', 'info');
-                    base64Audio = await blobToBase64(audioBlob);
-                    console.log('Áudio convertido para Base64.');
-                } catch (err) {
-                    console.error('Erro ao converter áudio:', err);
-                    updateStatus('Erro ao converter áudio.', 'error');
-                    return;
-                }
+      async function sendAudioToWebhook(audioBlob, webhookUrl) {
+        let base64Audio;
 
-                // --- MUDANÇA: Payload agora é JSON ---
-                const payload = {
-                    base64: base64Audio
-                };
-                
-                console.log('Enviando JSON com Base64 para:', webhookUrl);
+        try {
+          updateStatus('Convertendo áudio...', 'info');
+          base64Audio = await blobToBase64(audioBlob);
+        } catch (err) {
+          console.error('Erro ao converter áudio:', err);
+          updateStatus('Erro ao converter áudio.', 'error');
+          return;
+        }
 
-                // Lógica de Timeout (15 segundos)
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => {
-                    controller.abort();
-                    console.error('Timeout: Webhook demorou muito para responder.');
-                    updateStatus('Erro: Webhook demorou muito para responder.', 'error');
-                }, 15000); // 15 segundos
+        const payload = { base64: base64Audio };
 
-                try {
-                    const response = await fetch(webhookUrl, {
-                        method: 'POST',
-                        // --- MUDANÇA: Cabeçalho é JSON ---
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        // --- MUDANÇA: Corpo é JSON stringificado ---
-                        body: JSON.stringify(payload),
-                        signal: controller.signal // Adiciona o controle de timeout
-                    });
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => {
+          controller.abort();
+          console.error('Timeout: Webhook demorou muito para responder.');
+          updateStatus('Erro: Webhook demorou muito para responder.', 'error');
+        }, 90000); // 90s (TTS + STT pode demorar) [web:256]
 
-                    clearTimeout(timeoutId); // Limpa o timeout se a resposta chegou
+        try {
+          updateStatus('Enviando para o webhook...', 'info');
 
-                    if (!response.ok) {
-                        throw new Error(`Erro no webhook: ${response.statusText}`);
-                    }
+          const response = await fetch(webhookUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload),
+            signal: controller.signal
+          });
 
-                    const result = await response.json();
-                    
-                    if (result.text) {
-                        console.log('Texto recebido:', result.text);
-                        // (O texto é recebido, mas não há local para exibi-lo nesta versão)
-                    }
+          clearTimeout(timeoutId);
 
-                    if (result.audioUrl) {
-                        console.log('URL de áudio recebida:', result.audioUrl);
-                        playResponseAudio(result.audioUrl);
-                    } else {
-                        updateStatus('Pronto para gravar.', 'info');
-                    }
+          if (!response.ok) {
+            const txt = await response.text().catch(() => '');
+            throw new Error(`Erro no webhook: ${response.status} ${response.statusText} ${txt}`);
+          }
 
-                } catch (err) {
-                    clearTimeout(timeoutId); // Limpa o timeout em caso de erro
-                    if (err.name === 'AbortError') {
-                        // O erro foi o timeout, a mensagem já foi cuidada
-                        return;
-                    }
-                    console.error('Erro ao enviar áudio:', err);
-                    updateStatus('Erro ao contatar o webhook.', 'error');
-                }
-            }
-            
-            function playResponseAudio(url) {
-                updateStatus('Tocando resposta...', 'info');
-                if (speakingAnimation) speakingAnimation.style.display = 'flex';
-                
-                responseAudio.src = url;
-                responseAudio.play();
+          // AGORA: esperamos áudio binário do n8n
+          const audioResponseBlob = await response.blob(); // padrão fetch -> blob [web:186]
+          await playResponseAudioFromBlob(audioResponseBlob);
 
-                responseAudio.onended = () => {
-                    updateStatus('Pronto para gravar.', 'info');
-                    if (speakingAnimation) speakingAnimation.style.display = 'none';
-                };
-                
-                responseAudio.onerror = () => {
-                    updateStatus('Erro ao tocar áudio de resposta.', 'error');
-                    if (speakingAnimation) speakingAnimation.style.display = 'none';
-                };
-            }
+        } catch (err) {
+          clearTimeout(timeoutId);
 
+          if (err.name === 'AbortError') return;
 
-            // 6. Event Listener Principal
-            if (microphoneBtn) {
-                microphoneBtn.addEventListener('click', () => {
-                    if (isRecording) {
-                        stopRecording();
-                    } else {
-                        startRecording();
-                    }
-                });
-            }
+          console.error('Erro ao enviar áudio:', err);
+          updateStatus('Erro ao contatar o webhook.', 'error');
+        }
+      }
 
-        }); // Fim do DOMContentLoaded
-    </script>
+      if (microphoneBtn) {
+        microphoneBtn.addEventListener('click', () => {
+          if (isRecording) stopRecording();
+          else startRecording();
+        });
+      }
 
+    });
+  </script>
 </body>
 </html>
