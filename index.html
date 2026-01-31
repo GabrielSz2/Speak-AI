@@ -370,34 +370,34 @@
           });
         }
 
-        function playResponseAudio(blob) {
+        async function playFromGetUrl(getUrl) {
           updateStatus("Tocando resposta...", "info");
           if (speakingAnimation) speakingAnimation.style.display = "flex";
 
-          const url = URL.createObjectURL(blob);
-          responseAudio.src = url;
+          const a = new Audio();
+          a.preload = "auto";
+          a.src = getUrl; // URL normal, não blob
 
-          responseAudio.play().catch((e) => {
+          a.onended = () => {
+            updateStatus("Pronto para gravar.", "info");
+            if (speakingAnimation) speakingAnimation.style.display = "none";
+          };
+
+          a.onerror = () => {
+            updateStatus("Erro ao tocar áudio (falha no player).", "error");
+            if (speakingAnimation) speakingAnimation.style.display = "none";
+          };
+
+          try {
+            await a.play(); // play() retorna Promise e pode falhar se não houver gesto do usuário [web:105]
+          } catch (e) {
             console.error("Falha ao dar play:", e);
-            URL.revokeObjectURL(url);
             updateStatus(
               "Erro ao tocar áudio (autoplay bloqueado ou erro no arquivo).",
               "error",
             );
             if (speakingAnimation) speakingAnimation.style.display = "none";
-          });
-
-          responseAudio.onended = () => {
-            URL.revokeObjectURL(url);
-            updateStatus("Pronto para gravar.", "info");
-            if (speakingAnimation) speakingAnimation.style.display = "none";
-          };
-
-          responseAudio.onerror = () => {
-            URL.revokeObjectURL(url);
-            updateStatus("Erro ao tocar áudio de resposta.", "error");
-            if (speakingAnimation) speakingAnimation.style.display = "none";
-          };
+          }
         }
 
         async function fetchMp3WithRetries(
