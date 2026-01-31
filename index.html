@@ -381,7 +381,7 @@
           console.log("[Front] GET =>", getUrl);
 
           // Espera de prontidão (se o arquivo ainda não existe, o GET tende a devolver JSON/0 bytes no seu caso)
-          await waitUntilAudioReady(getUrl, controller, 20, 1500);
+          await waitUntilAudioReady(getUrl, controller, 30, 1500);
 
           clearTimeout(timeoutId);
 
