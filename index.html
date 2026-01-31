@@ -11,138 +11,98 @@
 
     <style>
       :root {
-        --color-background: #18181b;
-        --color-surface: #27272a;
-        --color-text: #e4e4e7;
-        --color-text-secondary: #a1a1aa;
-        --color-border: rgba(255, 255, 255, 0.15);
-        --color-card-border: rgba(255, 255, 255, 0.2);
-        --color-primary: #2dd4bf;
-        --color-primary-hover: #14b8a6;
-        --color-disabled: #3f3f46;
-        --color-enabled: #4caf50;
-        --color-recording: #f44336;
-        --color-speaking: #2196f3;
-        --color-error: #f43f5e;
-        --color-error-bg: rgba(244, 63, 94, 0.15);
-        --color-info-bg: rgba(45, 212, 191, 0.1);
-
-        --font-family-base:
-          "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+        --bg: #18181b;
+        --surface: #27272a;
+        --text: #e4e4e7;
+        --text2: #a1a1aa;
+        --border: rgba(255, 255, 255, 0.15);
+        --card: rgba(255, 255, 255, 0.2);
+        --primary: #2dd4bf;
+        --primary2: #14b8a6;
+        --disabled: #3f3f46;
+        --ok: #4caf50;
+        --rec: #f44336;
+        --speak: #2196f3;
+        --err: #f43f5e;
+        --errbg: rgba(244, 63, 94, 0.15);
+        --infobg: rgba(45, 212, 191, 0.1);
+        --r: 12px;
+        font-family:
+          Inter,
+          system-ui,
+          -apple-system,
+          Segoe UI,
+          Roboto,
           sans-serif;
-        --font-size-base: 14px;
-        --font-size-sm: 12px;
-        --font-size-lg: 16px;
-        --font-size-xl: 18px;
-        --font-weight-medium: 500;
-        --font-weight-semibold: 600;
-
-        --space-8: 8px;
-        --space-12: 12px;
-        --space-16: 16px;
-        --space-24: 24px;
-        --space-32: 32px;
-
-        --radius-base: 8px;
-        --radius-lg: 12px;
-        --radius-full: 9999px;
-
-        --shadow-sm:
-          0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
-        --shadow-lg:
-          0 10px 15px -3px rgba(0, 0, 0, 0.04),
-          0 4px 6px -2px rgba(0, 0, 0, 0.02);
-        --duration-normal: 250ms;
-        --ease-standard: cubic-bezier(0.16, 1, 0.3, 1);
       }
-
       html {
-        font-family: var(--font-family-base);
-        color: var(--color-text);
-        background-color: var(--color-background);
-        -webkit-font-smoothing: antialiased;
-        box-sizing: border-box;
+        background: var(--bg);
+        color: var(--text);
       }
-
       body {
         margin: 0;
-        padding: var(--space-16);
+        padding: 16px;
+        min-height: 100vh;
         display: flex;
         align-items: center;
         justify-content: center;
-        min-height: 100vh;
       }
-
-      *,
-      *::before,
-      *::after {
-        box-sizing: inherit;
-      }
-
-      .chat-interface {
+      .app {
         width: 100%;
-        max-width: 500px;
-        background: var(--color-surface);
-        border-radius: var(--radius-lg);
-        border: 1px solid var(--color-card-border);
-        box-shadow: var(--shadow-lg);
+        max-width: 520px;
+        background: var(--surface);
+        border: 1px solid var(--card);
+        border-radius: var(--r);
+        box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.25);
         overflow: hidden;
       }
-
-      .header {
-        padding: var(--space-24);
+      .head {
+        padding: 22px 24px;
+        border-bottom: 1px solid var(--card);
         text-align: center;
-        border-bottom: 1px solid var(--color-card-border);
       }
-
-      .header h1 {
-        font-size: var(--font-size-xl);
-        font-weight: var(--font-weight-semibold);
+      .head h1 {
         margin: 0;
+        font-size: 18px;
+        font-weight: 600;
       }
-
-      .main-content {
-        padding: var(--space-32);
-        text-align: center;
+      .main {
+        padding: 28px 24px;
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: var(--space-24);
+        gap: 18px;
       }
-
-      .speaking-animation {
-        display: flex;
-        justify-content: center;
-        align-items: center;
+      .speaking {
+        display: none;
         gap: 4px;
-        height: 60px;
+        height: 50px;
+        align-items: center;
+        justify-content: center;
       }
-
       .wave {
         width: 4px;
-        background: var(--color-speaking);
-        border-radius: var(--radius-full);
-        animation: waveAnimation 1.5s ease-in-out infinite;
+        border-radius: 999px;
+        background: var(--speak);
+        animation: wave 1.5s ease-in-out infinite;
       }
-
       .wave:nth-child(1) {
+        height: 16px;
         animation-delay: 0s;
-        height: 20px;
       }
       .wave:nth-child(2) {
+        height: 24px;
         animation-delay: 0.2s;
-        height: 30px;
       }
       .wave:nth-child(3) {
+        height: 34px;
         animation-delay: 0.4s;
-        height: 40px;
       }
       .wave:nth-child(4) {
+        height: 20px;
         animation-delay: 0.6s;
-        height: 25px;
       }
-
-      @keyframes waveAnimation {
+      @keyframes wave {
         0%,
         40%,
         100% {
@@ -153,147 +113,95 @@
         }
       }
 
-      .microphone-btn {
-        width: 80px;
-        height: 80px;
+      .mic {
+        width: 82px;
+        height: 82px;
+        border: 0;
         border-radius: 50%;
-        border: none;
-        cursor: pointer;
-        transition: all var(--duration-normal) var(--ease-standard);
         display: flex;
         align-items: center;
         justify-content: center;
-        position: relative;
+        cursor: pointer;
+        transition: 0.2s ease;
+        user-select: none;
+        background: var(--disabled);
       }
-
-      .microphone-btn:disabled {
-        background-color: var(--color-disabled);
-        cursor: not-allowed;
+      .mic.enabled {
+        background: var(--ok);
       }
-
-      .microphone-btn.enabled {
-        background-color: var(--color-enabled);
-        box-shadow: var(--shadow-sm);
+      .mic.recording {
+        background: var(--rec);
+        animation: pulse 1.5s ease-in-out infinite;
       }
-
-      .microphone-btn.enabled:hover {
-        transform: scale(1.05);
-        box-shadow: var(--shadow-lg);
-      }
-
-      .microphone-btn.recording {
-        background-color: var(--color-recording);
-        animation: pulseRecording 1.5s ease-in-out infinite;
-      }
-
-      @keyframes pulseRecording {
+      @keyframes pulse {
         0%,
         100% {
           transform: scale(1);
         }
         50% {
-          transform: scale(1.1);
+          transform: scale(1.08);
         }
       }
-
-      .mic-icon {
-        width: 32px;
-        height: 32px;
-        color: white;
-        stroke: currentColor;
-        stroke-width: 2;
-        stroke-linecap: round;
-        stroke-linejoin: round;
-        fill: none;
+      .mic:disabled {
+        cursor: not-allowed;
+        opacity: 0.7;
       }
 
-      .webhook-container {
+      .status {
         width: 100%;
-        text-align: left;
-      }
-
-      .form-label {
-        display: block;
-        margin-bottom: var(--space-8);
-        font-weight: var(--font-weight-medium);
-        font-size: var(--font-size-sm);
-      }
-
-      .form-control {
-        display: block;
-        width: 100%;
-        padding: var(--space-8) var(--space-12);
-        font-size: var(--font-size-base);
-        color: var(--color-text);
-        background-color: var(--color-surface);
-        border: 1px solid var(--color-border);
-        border-radius: var(--radius-base);
-        transition:
-          border-color var(--duration-normal) var(--ease-standard),
-          box-shadow var(--duration-normal) var(--ease-standard);
-      }
-
-      .form-control:focus {
-        border-color: var(--color-primary);
-        outline: 0;
-        box-shadow: 0 0 0 3px rgba(45, 212, 191, 0.3);
-      }
-
-      .status-indicator {
-        padding: var(--space-12);
-        border-radius: var(--radius-base);
-        font-weight: var(--font-weight-medium);
-        font-size: var(--font-size-sm);
+        padding: 12px;
+        border-radius: 10px;
         text-align: center;
-        width: 100%;
+        font-size: 12px;
+        font-weight: 500;
+        background: var(--infobg);
+        color: var(--primary);
+        border: 1px solid rgba(45, 212, 191, 0.25);
       }
-
-      .status-indicator.info {
-        background-color: var(--color-info-bg);
-        color: var(--color-primary);
+      .status.error {
+        background: var(--errbg);
+        color: var(--err);
+        border: 1px solid rgba(244, 63, 94, 0.35);
       }
-      .status-indicator.error {
-        background-color: var(--color-error-bg);
-        color: var(--color-error);
-      }
-
       .hint {
         width: 100%;
-        text-align: left;
-        font-size: var(--font-size-sm);
-        color: var(--color-text-secondary);
-        line-height: 1.4;
+        color: var(--text2);
+        font-size: 12px;
+        line-height: 1.45;
       }
-
       code {
         background: rgba(255, 255, 255, 0.08);
         padding: 2px 6px;
         border-radius: 6px;
-        font-size: 12px;
       }
     </style>
   </head>
 
   <body>
-    <div class="chat-interface">
-      <div class="header">
+    <div class="app">
+      <div class="head">
         <h1>Assistente Virtual por Áudio</h1>
       </div>
 
-      <div class="main-content">
-        <div
-          class="speaking-animation"
-          id="speakingAnimation"
-          style="display: none"
-        >
+      <div class="main">
+        <div class="speaking" id="speaking">
           <div class="wave"></div>
           <div class="wave"></div>
           <div class="wave"></div>
           <div class="wave"></div>
         </div>
 
-        <button class="microphone-btn" id="microphoneBtn" disabled>
-          <svg class="mic-icon" viewBox="0 0 24 24" fill="currentColor">
+        <button class="mic" id="micBtn" disabled title="Gravar / Parar">
+          <svg
+            width="34"
+            height="34"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="white"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+          >
             <path
               d="M12 2a3 3 0 0 0-3 3v6a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"
             ></path>
@@ -303,297 +211,254 @@
           </svg>
         </button>
 
+        <div class="status" id="status">Aguardando...</div>
+
         <div class="hint">
-          Backend fixo:
-          <br />POST:
-          <code>https://n8n.oficinahub.xyz/webhook/speakwebpost</code>
-          <br />GET:
+          Backend fixo:<br />
+          POST: <code>https://n8n.oficinahub.xyz/webhook/speakwebpost</code
+          ><br />
+          GET:
           <code
             >https://n8n.oficinahub.xyz/webhook/speakwebget?id=&lt;id&gt;</code
           >
-        </div>
-
-        <div class="status-indicator info" id="statusIndicator">
-          <span id="statusText">Aguardando...</span>
         </div>
       </div>
     </div>
 
     <script>
-      document.addEventListener("DOMContentLoaded", () => {
-        const POST_URL = "https://n8n.oficinahub.xyz/webhook/speakwebpost";
-        const GET_URL_BASE = "https://n8n.oficinahub.xyz/webhook/speakwebget";
+      // URLs fixas (do seu n8n)
+      const POST_URL = "https://n8n.oficinahub.xyz/webhook/speakwebpost";
+      const GET_URL_BASE = "https://n8n.oficinahub.xyz/webhook/speakwebget";
 
-        if (
-          !navigator.mediaDevices ||
-          !navigator.mediaDevices.getUserMedia ||
-          !window.MediaRecorder
-        ) {
-          const statusText = document.getElementById("statusText");
-          const indicator = document.getElementById("statusIndicator");
-          if (statusText)
-            statusText.textContent =
-              "Erro: Seu navegador não suporta gravação de áudio.";
-          if (indicator) indicator.className = "status-indicator error";
-          return;
-        }
+      const micBtn = document.getElementById("micBtn");
+      const statusEl = document.getElementById("status");
+      const speakingEl = document.getElementById("speaking");
 
-        const microphoneBtn = document.getElementById("microphoneBtn");
-        const statusText = document.getElementById("statusText");
-        const statusIndicator = document.getElementById("statusIndicator");
-        const speakingAnimation = document.getElementById("speakingAnimation");
+      let isRecording = false;
+      let mediaRecorder = null;
+      let audioChunks = [];
 
-        let isRecording = false;
-        let mediaRecorder = null;
-        let audioChunks = [];
-        let responseAudio = new Audio();
+      function setStatus(text, isError = false) {
+        statusEl.textContent = text;
+        statusEl.classList.toggle("error", !!isError);
+      }
 
-        function updateStatus(message, type = "info") {
-          if (statusText) statusText.textContent = message;
-          if (statusIndicator)
-            statusIndicator.className = `status-indicator ${type}`;
-        }
+      function sleep(ms) {
+        return new Promise((r) => setTimeout(r, ms));
+      }
 
-        function sleep(ms) {
-          return new Promise((resolve) => setTimeout(resolve, ms)); // delay via setTimeout [web:12]
-        }
+      function showSpeaking(on) {
+        speakingEl.style.display = on ? "flex" : "none";
+      }
 
-        function blobToBase64(blob) {
-          return new Promise((resolve, reject) => {
-            const reader = new FileReader();
-            reader.onloadend = () => {
-              const base64Data = reader.result.split(",")[1];
-              resolve(base64Data);
-            };
-            reader.onerror = reject;
-            reader.readAsDataURL(blob);
+      function blobToBase64(blob) {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            const base64 = String(reader.result || "").split(",")[1] || "";
+            resolve(base64);
+          };
+          reader.onerror = reject;
+          reader.readAsDataURL(blob);
+        });
+      }
+
+      // Espera até o GET realmente devolver áudio (não JSON/0 bytes)
+      async function waitUntilAudioReady(
+        getUrl,
+        controller,
+        tries = 20,
+        delayMs = 1500,
+      ) {
+        let last = "";
+
+        for (let i = 1; i <= tries; i++) {
+          setStatus(`Aguardando MP3... ${i}/${tries}`);
+
+          const res = await fetch(getUrl, {
+            method: "GET",
+            cache: "no-store",
+            signal: controller.signal,
           });
-        }
 
-        async function playFromGetUrl(getUrl) {
-          updateStatus("Tocando resposta...", "info");
-          if (speakingAnimation) speakingAnimation.style.display = "flex";
+          const ct = (res.headers.get("content-type") || "").toLowerCase();
+          const buf = await res.arrayBuffer(); // lê bytes puros [web:111]
+          const size = buf.byteLength;
 
-          const a = new Audio();
-          a.preload = "auto";
-          a.src = getUrl; // URL normal, não blob
+          console.log(
+            "[Front] GET status:",
+            res.status,
+            "Content-Type:",
+            ct,
+            "bytes:",
+            size,
+          );
 
-          a.onended = () => {
-            updateStatus("Pronto para gravar.", "info");
-            if (speakingAnimation) speakingAnimation.style.display = "none";
-          };
-
-          a.onerror = () => {
-            updateStatus("Erro ao tocar áudio (falha no player).", "error");
-            if (speakingAnimation) speakingAnimation.style.display = "none";
-          };
-
-          try {
-            await a.play(); // play() retorna Promise e pode falhar se não houver gesto do usuário [web:105]
-          } catch (e) {
-            console.error("Falha ao dar play:", e);
-            updateStatus(
-              "Erro ao tocar áudio (autoplay bloqueado ou erro no arquivo).",
-              "error",
-            );
-            if (speakingAnimation) speakingAnimation.style.display = "none";
-          }
-        }
-
-        async function fetchMp3WithRetries(
-          getUrl,
-          controller,
-          tries = 15,
-          delayMs = 2000,
-        ) {
-          let lastStatus = null;
-          let lastText = "";
-
-          for (let attempt = 1; attempt <= tries; attempt++) {
-            updateStatus(
-              `Buscando áudio (GET)... tentativa ${attempt}/${tries}`,
-              "info",
-            );
-
-            const res = await fetch(getUrl, {
-              method: "GET",
-              cache: "no-store",
-              signal: controller.signal,
-            });
-
-            if (res.ok) {
-              const contentType = res.headers.get("content-type") || "";
-              console.log("[Front] GET Content-Type:", contentType);
-
-              const buf = await res.arrayBuffer();
-              console.log("[Front] GET bytes:", buf.byteLength);
-
-              return new Blob([buf], { type: "audio/mpeg" });
-            }
-
-            lastStatus = res.status;
-            lastText = await res.text().catch(() => "");
-
-            // 404/409 = "ainda não pronto" (você pode manter esse contrato no n8n)
-            if (res.status !== 404 && res.status !== 409) {
-              throw new Error(
-                `GET falhou: ${res.status} ${res.statusText} ${lastText}`,
-              );
-            }
-
-            await sleep(delayMs);
+          // Pronto: veio áudio e veio payload de verdade
+          if (res.ok && ct.startsWith("audio/") && size > 1000) {
+            return; // não precisa retornar blob, vamos tocar por URL
           }
 
-          throw new Error(
-            `Não consegui obter o MP3 após ${tries} tentativas. Último status: ${lastStatus}. ${lastText}`,
+          // Ainda não pronto / resposta errada
+          last = `status=${res.status} ct=${ct} bytes=${size}`;
+          await sleep(delayMs);
+        }
+
+        throw new Error(`MP3 não ficou pronto a tempo (${last}).`);
+      }
+
+      // Toca direto pelo endpoint GET (evita problemas com blob:)
+      async function playFromUrl(getUrl) {
+        setStatus("Tocando resposta...");
+        showSpeaking(true);
+
+        const a = new Audio();
+        a.preload = "auto";
+        a.src = getUrl;
+
+        a.onended = () => {
+          showSpeaking(false);
+          setStatus("Pronto para gravar.");
+        };
+
+        a.onerror = () => {
+          showSpeaking(false);
+          setStatus("Erro ao tocar áudio (player falhou).", true);
+        };
+
+        try {
+          // play() retorna Promise e pode ser bloqueado por política do browser [web:105]
+          await a.play();
+        } catch (e) {
+          console.error("Falha ao dar play:", e);
+          showSpeaking(false);
+          setStatus(
+            "Erro ao tocar áudio (autoplay bloqueado ou erro no arquivo).",
+            true,
           );
         }
+      }
 
-        async function sendAudioToBackend(audioBlob) {
-          let base64Audio;
+      async function sendAudioToBackend(audioBlob) {
+        setStatus("Convertendo áudio...");
+        const base64 = await blobToBase64(audioBlob);
 
+        console.log("[Front] Áudio convertido para Base64");
+
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 120000);
+
+        try {
+          setStatus("Enviando para o backend (POST)...");
+          console.log("[Front] POST =>", POST_URL);
+
+          const postRes = await fetch(POST_URL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ base64 }),
+            signal: controller.signal,
+          });
+
+          const postText = await postRes.text().catch(() => "");
+          console.log(
+            "[Front] POST status:",
+            postRes.status,
+            postRes.statusText,
+          );
+          console.log("[Front] POST body:", postText);
+
+          if (!postRes.ok)
+            throw new Error(`POST falhou: ${postRes.status} ${postText}`);
+
+          let id = null;
           try {
-            updateStatus("Convertendo áudio...", "info");
-            base64Audio = await blobToBase64(audioBlob);
-            console.log("[Front] Áudio convertido para Base64");
-          } catch (err) {
-            console.error("[Front] Erro ao converter áudio:", err);
-            updateStatus("Erro ao converter áudio.", "error");
+            id = JSON.parse(postText)?.id;
+          } catch (_) {}
+
+          if (!id) throw new Error('POST não retornou JSON com "id".');
+
+          const getUrl = `${GET_URL_BASE}?id=${encodeURIComponent(id)}`;
+          console.log("[Front] GET =>", getUrl);
+
+          // Espera de prontidão (se o arquivo ainda não existe, o GET tende a devolver JSON/0 bytes no seu caso)
+          await waitUntilAudioReady(getUrl, controller, 20, 1500);
+
+          clearTimeout(timeoutId);
+
+          // Toca por URL normal
+          await playFromUrl(getUrl);
+        } catch (e) {
+          clearTimeout(timeoutId);
+          if (e?.name === "AbortError") {
+            setStatus("Erro: Timeout geral do processo.", true);
             return;
           }
-
-          const payload = { base64: base64Audio };
-
-          const controller = new AbortController();
-          const timeoutId = setTimeout(() => {
-            controller.abort();
-            updateStatus("Erro: Timeout geral do processo.", "error");
-          }, 120000);
-
-          try {
-            updateStatus("Enviando para o backend (POST)...", "info");
-            console.log("[Front] POST =>", POST_URL);
-
-            const postRes = await fetch(POST_URL, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify(payload),
-              signal: controller.signal,
-            });
-
-            const postText = await postRes.text().catch(() => "");
-            console.log(
-              "[Front] POST status:",
-              postRes.status,
-              postRes.statusText,
-            );
-            console.log("[Front] POST body:", postText);
-
-            if (!postRes.ok) {
-              throw new Error(
-                `POST falhou: ${postRes.status} ${postRes.statusText} ${postText}`,
-              );
-            }
-
-            let id = null;
-            try {
-              const data = postText ? JSON.parse(postText) : null;
-              id = data && data.id;
-            } catch (_) {}
-
-            if (!id) {
-              throw new Error('POST não retornou JSON com { "id": "..." }.');
-            }
-
-            updateStatus("ID recebido. Aguardando 5s...", "info");
-            await sleep(5000);
-
-            const getUrl = `${GET_URL_BASE}?id=${encodeURIComponent(id)}`;
-            console.log("[Front] GET =>", getUrl);
-
-            const mp3Blob = await fetchMp3WithRetries(
-              getUrl,
-              controller,
-              15,
-              2000,
-            );
-
-            clearTimeout(timeoutId);
-            playResponseAudio(mp3Blob);
-          } catch (err) {
-            clearTimeout(timeoutId);
-            if (err && err.name === "AbortError") return;
-            console.error("[Front] Erro ao enviar/baixar áudio:", err);
-            updateStatus(
-              `Erro: ${err.message || "Falha ao contatar o backend."}`,
-              "error",
-            );
-          }
+          console.error("[Front] Erro:", e);
+          setStatus(
+            `Erro: ${e?.message || "Falha ao contatar o backend."}`,
+            true,
+          );
         }
+      }
 
-        async function startRecording() {
-          if (isRecording) return;
+      async function startRecording() {
+        if (isRecording) return;
 
-          try {
-            const stream = await navigator.mediaDevices.getUserMedia({
-              audio: true,
-            });
-            isRecording = true;
-            audioChunks = [];
-
-            mediaRecorder = new MediaRecorder(stream);
-
-            mediaRecorder.ondataavailable = (event) => {
-              audioChunks.push(event.data);
-            };
-
-            mediaRecorder.onstop = () => {
-              isRecording = false;
-
-              if (microphoneBtn) {
-                microphoneBtn.classList.remove("recording");
-                microphoneBtn.classList.add("enabled");
-              }
-
-              const audioBlob = new Blob(audioChunks, { type: "audio/webm" });
-
-              updateStatus("Processando...", "info");
-              sendAudioToBackend(audioBlob).finally(() =>
-                stream.getTracks().forEach((track) => track.stop()),
-              );
-            };
-
-            mediaRecorder.start();
-
-            if (microphoneBtn) {
-              microphoneBtn.classList.remove("enabled");
-              microphoneBtn.classList.add("recording");
-            }
-
-            updateStatus("Gravando... Clique para parar.", "info");
-          } catch (err) {
-            console.error("Erro ao acessar microfone:", err);
-            updateStatus("Erro: Permissão ao microfone negada.", "error");
-            isRecording = false;
-          }
-        }
-
-        function stopRecording() {
-          if (!isRecording || !mediaRecorder) return;
-          mediaRecorder.stop();
-        }
-
-        if (microphoneBtn) {
-          microphoneBtn.disabled = false;
-          microphoneBtn.classList.add("enabled");
-          updateStatus("Pronto para gravar.", "info");
-
-          microphoneBtn.addEventListener("click", () => {
-            if (isRecording) stopRecording();
-            else startRecording();
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({
+            audio: true,
           });
+          audioChunks = [];
+
+          mediaRecorder = new MediaRecorder(stream);
+          isRecording = true;
+
+          mediaRecorder.ondataavailable = (ev) => audioChunks.push(ev.data);
+
+          mediaRecorder.onstop = () => {
+            isRecording = false;
+            micBtn.classList.remove("recording");
+            micBtn.classList.add("enabled");
+
+            const blob = new Blob(audioChunks, { type: "audio/webm" });
+            setStatus("Processando...");
+            sendAudioToBackend(blob).finally(() =>
+              stream.getTracks().forEach((t) => t.stop()),
+            );
+          };
+
+          mediaRecorder.start();
+          micBtn.classList.add("recording");
+          micBtn.classList.remove("enabled");
+          setStatus("Gravando... clique para parar.");
+        } catch (e) {
+          console.error("Erro ao acessar microfone:", e);
+          setStatus("Erro: permissão ao microfone negada.", true);
+          isRecording = false;
         }
-      });
+      }
+
+      function stopRecording() {
+        if (!isRecording || !mediaRecorder) return;
+        mediaRecorder.stop();
+      }
+
+      // Init
+      (function init() {
+        const ok = navigator.mediaDevices?.getUserMedia && window.MediaRecorder;
+        if (!ok) {
+          setStatus("Erro: seu navegador não suporta gravação de áudio.", true);
+          return;
+        }
+        micBtn.disabled = false;
+        micBtn.classList.add("enabled");
+        setStatus("Pronto para gravar.");
+
+        micBtn.addEventListener("click", () => {
+          if (isRecording) stopRecording();
+          else startRecording();
+        });
+      })();
     </script>
   </body>
 </html>
