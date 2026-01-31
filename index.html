@@ -459,6 +459,11 @@
           else startRecording();
         });
       })();
+
+      function playResponseAudio(_) {
+        // Compatibilidade: agora tocamos por URL, não por blob
+        throw new Error("Função antiga. Use playFromUrl(getUrl).");
+      }
     </script>
   </body>
 </html>
